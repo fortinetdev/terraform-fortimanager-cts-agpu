@@ -53,7 +53,7 @@ resource "fortimanager_securityconsole_install_package" "trname" {
   for_each = local.install_package
 
   fmgadom        = var.adom
-  force_recreate = local.force_recreate
+  force_recreate = uuid()
   flags          = ["none"]
   pkg            = var.package
 
@@ -63,22 +63,8 @@ resource "fortimanager_securityconsole_install_package" "trname" {
 }
 
 locals {
-  pre_local_path = "./pre_local.txt"
-  pre_local      = fileexists(local.pre_local_path) ? jsondecode(file(local.pre_local_path)) : { "pre_comment" = "Recreate" }
-
   install_package = var.install_package == "Yes" ? { "install_package" = "Yes" } : {}
-  force_recreate  = local.pre_local["pre_comment"] == "Force recreate" ? "Recreate" : "Force recreate"
   consul_services = {
     for id, s in var.services : s.name => s...
   }
-
-  cur_local = { "pre_comment" = local.force_recreate }
-}
-
-/**************FTNT**************
-Save current value of force_recreate of fortimanager_securityconsole_install_package to make changes for it next time run Terraform apply
-***************FTNT*************/
-resource "local_file" "cur_local" {
-  content  = jsonencode(local.cur_local)
-  filename = local.pre_local_path
 }
